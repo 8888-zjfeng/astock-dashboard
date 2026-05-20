@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A鑲″疄鎴樺垎鏋愮郴缁?V3.7</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --bg-hover: #21262d;
+            --border: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --red: #f85149;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --blue: #58a6ff;
+            --purple: #a371f7;
+            --orange: #f0883e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* 椤堕儴瀵艰埅 */
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--blue);
+        }
+
+        .market-overview {
+            display: flex;
+            gap: 20px;
+        }
+
+        .index-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .index-name {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .index-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .index-change {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .index-change.up {
+            background: rgba(248, 81, 73, 0.15);
+            color: var(--red);
+        }
+
+        .index-change.down {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--green);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .time-display {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .refresh-btn {
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
+        }
+
+        .refresh-btn:hover {
+            opacity: 0.85;
+        }
+
+        .refresh-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 涓诲竷灞€ */
+        .main-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 300px;
+            gap: 16px;
+            padding: 16px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* 鍗＄墖鏍峰紡 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 12px;
+        }
+
+        /* 宸︿晶闈㈡澘 */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 鏉垮潡璧勯噾娴?*/
+        .sector-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sector-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .sector-item:hover {
+            transform: translateX(4px);
+        }
+
+        .sector-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .sector-flow-amount {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .sector-flow-amount.positive {
+            color: var(--red);
+        }
+
+        .sector-flow-amount.negative {
+            color: var(--green);
+        }
+
+        /* 涓棿闈㈡澘 */
+        .center-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 鍒嗘椂鍥惧尯鍩?*/
+        .chart-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* K绾垮浘鏍峰紡 */
+        .candlestick-container {
+            height: 300px;
+        }
+
+        /* 寮哄娍鑲″垪琛?*/
+        .stock-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .stock-item {
+            display: grid;
+            grid-template-columns: 1fr 80px 60px;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .stock-item:hover {
+            background: var(--border);
+        }
+
+        .stock-name {
+            font-size: 13px;
+        }
+
+        .stock-code {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .stock-price {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        .stock-change {
+            font-size: 12px;
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .stock-change.up {
+            color: var(--red);
+        }
+
+        .stock-change.down {
+            color: var(--green);
+        }
+
+        /* 鍙充晶闈㈡澘 */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 娑ㄥ仠鏉?*/
+        .limit-up-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .limit-up-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(248, 81, 73, 0.1);
+            border-left: 3px solid var(--red);
+            border-radius: 4px;
+        }
+
+        .limit-up-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .limit-up-reason {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .limit-up-time {
+            font-size: 11px;
+            color: var(--yellow);
+        }
+
+        /* 閲忚兘鍒嗘瀽 */
+        .volume-analysis {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .volume-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .volume-label {
+            width: 100px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .volume-track {
+            flex: 1;
+            height: 20px;
+            background: var(--bg-hover);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .volume-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .volume-fill.red {
+            background: linear-gradient(90deg, var(--red), #ff6b6b);
+        }
+
+        .volume-fill.green {
+            background: linear-gradient(90deg, var(--green), #69db7c);
+        }
+
+        .volume-fill.blue {
+            background: linear-gradient(90deg, var(--blue), #74c0fc);
+        }
+
+        .volume-fill.yellow {
+            background: linear-gradient(90deg, var(--yellow), #ffd43b);
+        }
+
+        .volume-percent {
+            width: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* 鍘嗗彶澶嶇洏鎺у埗 */
+        .replay-controls {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .date-picker {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-picker label {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .date-input {
+            background: var(--bg-hover);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: var(--bg-hover);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--blue);
+            color: #fff;
+        }
+
+        .replay-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--border);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* 鐘舵€佹爣绛?*/
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .status-badge.realtime {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--green);
+        }
+
+        .status-badge.replay {
+            background: rgba(210, 153, 34, 0.15);
+            color: var(--yellow);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.realtime .status-dot {
+            background: var(--green);
+        }
+
+        .status-badge.replay .status-dot {
+            background: var(--yellow);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 淇″彿鎸囩ず鍣?*/
+        .signal-indicator {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .signal-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+        }
+
+        .signal-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .signal-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .signal-value.positive {
+            color: var(--red);
+        }
+
+        .signal-value.negative {
+            color: var(--green);
+        }
+
+        .signal-value.neutral {
+            color: var(--yellow);
+        }
+
+        /* 璧勯噾娴佽繘搴︽潯 */
+        .flow-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-hover);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .flow-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .flow-fill.positive {
+            background: var(--red);
+        }
+
+        .flow-fill.negative {
+            background: var(--green);
+        }
+
+        /* 婊氬姩鏉＄編鍖?*/
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* 鏍囩鍒囨崲 */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text-primary);
+        }
+
+        /* 缁熻鏁板瓧 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--bg-hover);
+            border-radius: 6px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-value.up {
+            color: var(--red);
+        }
+
+        .stat-value.down {
+            color: var(--green);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* 鍔犺浇鐘舵€?*/
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border);
+            border-top-color: var(--blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 绌虹姸鎬?*/
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* 蹇嵎閿彁绀?*/
+        .shortcut-hint {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .shortcut-hint kbd {
+            background: var(--bg-hover);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 0 4px;
+        }
+
+        /* 鍝嶅簲寮?*/
+        @media (max-width: 1400px) {
+            .main-container {
+                grid-template-columns: 260px 1fr 280px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-panel, .right-panel {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 宸ュ叿鎻愮ず */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: var(--text-primary);
+            color: var(--bg-dark);
+            font-size: 11px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- 椤堕儴瀵艰埅 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">馃搳 A鑲″疄鎴樺垎鏋?V3.7</div>
+            <div class="market-overview">
+                <div class="index-item">
+                    <span class="index-name">涓婅瘉鎸囨暟</span>
+                    <span class="index-value" id="sh-index-value">--</span>
+                    <span class="index-change up" id="sh-index-change">--</span>
+                </div>
+                <div class="index-item">
+                    <span class="index-name">娣辫瘉鎴愭寚</span>
+                    <span class="index-value" id="sz-index-value">--</span>
+                    <span class="index-change up" id="sz-index-change">--</span>
+                </div>
+                <div class="index-item">
+                    <span class="index-name">鍒涗笟鏉?/span>
+                    <span class="index-value" id="cy-index-value">--</span>
+                    <span class="index-change up" id="cy-index-change">--</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="status-badge realtime" id="status-badge">
+                <span class="status-dot"></span>
+                <span id="status-text">瀹炴椂琛屾儏</span>
+            </div>
+            <div class="time-display" id="current-time">--:--:--</div>
+            <button class="refresh-btn" id="refresh-btn" onclick="refreshData()">
+                <span>馃攧</span> 鍒锋柊鏁版嵁
+            </button>
+        </div>
+    </header>
+
+    <!-- 涓诲唴瀹瑰尯 -->
+    <main class="main-container">
+        <!-- 宸︿晶闈㈡澘 -->
+        <div class="left-panel">
+            <!-- 甯傚満缁熻 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃搱 甯傚満鎯呯华</span>
+                </div>
+                <div class="card-body">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value up" id="up-count">--</div>
+                            <div class="stat-label">涓婃定</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value down" id="down-count">--</div>
+                            <div class="stat-label">涓嬭穼</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="limit-up-count">--</div>
+                            <div class="stat-label">娑ㄥ仠</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="limit-down-count">--</div>
+                            <div class="stat-label">璺屽仠</div>
+                        </div>
+                    </div>
+                    <div class="signal-indicator">
+                        <div class="signal-item">
+                            <div class="signal-label">澶氬ご淇″彿</div>
+                            <div class="signal-value positive" id="bull-signal">--</div>
+                        </div>
+                        <div class="signal-item">
+                            <div class="signal-label">绌哄ご淇″彿</div>
+                            <div class="signal-value negative" id="bear-signal">--</div>
+                        </div>
+                        <div class="signal-item">
+                            <div class="signal-label">甯傚満寮哄害</div>
+                            <div class="signal-value neutral" id="market-strength">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 涓荤嚎鏉垮潡璧勯噾娴?-->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃挵 涓荤嚎鏉垮潡璧勯噾娴?/span>
+                </div>
+                <div class="card-body">
+                    <div class="sector-flow" id="sector-flow">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            鍔犺浇涓?..
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 寮哄娍鑲¤拷韪?-->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃殌 寮哄娍鑲¤拷韪?/span>
+                    <span class="status-badge realtime" style="font-size: 10px; padding: 2px 8px;">
+                        <span class="status-dot" style="width: 4px; height: 4px;"></span>
+                        3鏃ユ柊楂?                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchStockTab('volume')">閲忎环榻愬崌</button>
+                        <button class="tab" onclick="switchStockTab('fund')">涓诲姏浠嬪叆</button>
+                    </div>
+                    <div class="stock-list" id="strong-stocks">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 涓棿闈㈡澘 -->
+        <div class="center-panel">
+            <!-- 鍒嗘椂鍥句笌K绾垮浘 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title" id="chart-title">馃搳 涓婅瘉鎸囨暟璧板娍</span>
+                    <div class="mode-toggle">
+                        <button class="mode-btn active" id="minute-mode" onclick="switchChartMode('minute')">鍒嗘椂</button>
+                        <button class="mode-btn" id="daily-mode" onclick="switchChartMode('daily')">鏃</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="chart-section">
+                        <div class="chart-container">
+                            <canvas id="priceChart"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 閲忚兘鍒嗘瀽 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃搳 鍒嗘椂閲忚兘鍒嗗竷</span>
+                    <span style="font-size: 12px; color: var(--text-secondary);" id="volume-total">鎬绘垚浜? --</span>
+                </div>
+                <div class="card-body">
+                    <div class="volume-analysis" id="volume-analysis">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 璧勯噾娴佸悜鍥?-->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃挼 璧勯噾娴佸悜鍒嗘瀽</span>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="fundFlowChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 鍙充晶闈㈡澘 -->
+        <div class="right-panel">
+            <!-- 娑ㄥ仠鏉胯拷韪?-->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃敶 娑ㄥ仠鏉胯拷韪?/span>
+                    <span style="font-size: 12px; color: var(--red);" id="zt-count">--鍙?/span>
+                </div>
+                <div class="card-body">
+                    <div class="limit-up-list" id="limit-up-list">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 杩炴澘鑲¤拷韪?-->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">馃敟 杩炴澘鑲?/span>
+                </div>
+                <div class="card-body">
+                    <div class="stock-list" id="consecutive-stocks">
+                        <div class="empty-state">
+                            <div style="font-size: 24px; margin-bottom: 8px;">馃搵</div>
+                            <div>鏆傛棤杩炴澘鑲℃暟鎹?/div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 寮傚姩鐩戞帶 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">鈿?寮傚姩鐩戞帶</span>
+                </div>
+                <div class="card-body">
+                    <div class="stock-list" id="alert-stocks">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 搴曢儴澶嶇洏鎺у埗 -->
+    <div class="replay-controls">
+        <div class="date-picker">
+            <label>馃搮 閫夋嫨澶嶇洏鏃ユ湡:</label>
+            <input type="date" class="date-input" id="replay-date" onchange="loadReplayData()">
+        </div>
+        
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="realtime-mode" onclick="switchMode('realtime')">瀹炴椂</button>
+            <button class="mode-btn" id="replay-mode" onclick="switchMode('replay')">澶嶇洏</button>
+        </div>
+
+        <div class="replay-nav" id="replay-nav" style="display: none;">
+            <button class="nav-btn" onclick="prevPeriod()" title="鍓嶄竴鏃舵">鈼€</button>
+            <button class="nav-btn" onclick="nextPeriod()" title="鍚庝竴鏃舵">鈻?/button>
+            <button class="nav-btn" onclick="exitReplay()" title="閫€鍑哄鐩?>鉁?/button>
+        </div>
+
+        <div style="color: var(--text-secondary); font-size: 12px;">
+            蹇嵎閿? <kbd>R</kbd> 鍒锋柊 | <kbd>Space</kbd> 鏆傚仠 | <kbd>鈫愨啋</kbd> 鍒囨崲鏃舵
+        </div>
+    </div>
+
+    <script>
+        // ==================== 鍏ㄥ眬鐘舵€?====================
+        const state = {
+            mode: 'realtime',  // realtime | replay
+            currentDate: new Date().toISOString().split('T')[0],
+            replayDate: null,
+            chartMode: 'minute',  // minute | daily
+            selectedStock: null,
+            autoRefresh: true,
+            refreshInterval: null,
+            charts: {}
+        };
+
+        // ==================== 鍒濆鍖?====================
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            refreshData();
+            startAutoRefresh();
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // 蹇嵎閿?            document.addEventListener('keydown', handleKeyboard);
+        });
+
+        // ==================== 鍥捐〃鍒濆鍖?====================
+        function initCharts() {
+            // 浠锋牸鍥捐〃
+            const priceCtx = document.getElementById('priceChart').getContext('2d');
+            state.charts.price = new Chart(priceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '浠锋牸',
+                        data: [],
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }, {
+                        label: '鍧囦环绾?,
+                        data: [],
+                        borderColor: '#f0883e',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        borderDash: [5, 5],
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: { color: '#8b949e', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: { color: '#8b949e' }
+                        }
+                    }
+                }
+            });
+
+            // 鎴愪氦閲忓浘琛?            const volumeCtx = document.getElementById('volumeChart').getContext('2d');
+            state.charts.volume = new Chart(volumeCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '鎴愪氦閲?,
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8b949e', maxTicksLimit: 8 }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: { color: '#8b949e' }
+                        }
+                    }
+                }
+            });
+
+            // 璧勯噾娴佸悜鍥捐〃
+            const fundCtx = document.getElementById('fundFlowChart').getContext('2d');
+            state.charts.fundFlow = new Chart(fundCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '涓诲姏鍑€娴佸叆',
+                        data: [],
+                        backgroundColor: [],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#8b949e', maxTicksLimit: 6 }
+                        },
+                        y: {
+                            position: 'right',
+                            grid: { color: 'rgba(48, 54, 61, 0.5)' },
+                            ticks: { color: '#8b949e' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== 鏁版嵁鍒锋柊 ====================
+        async function refreshData() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;margin:0;"></span> 鍒锋柊涓?..';
+
+            try {
+                if (state.mode === 'realtime') {
+                    await Promise.all([
+                        fetchMarketOverview(),
+                        fetchMarketStats(),
+                        fetchSectorFlow(),
+                        fetchStrongStocks(),
+                        fetchLimitUp(),
+                        fetchAlertStocks(),
+                        fetchPriceData(),
+                        fetchVolumeAnalysis(),
+                        fetchFundFlow()
+                    ]);
+                } else {
+                    await loadReplayData();
+                }
+            } catch (error) {
+                console.error('鏁版嵁鍒锋柊澶辫触:', error);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<span>馃攧</span> 鍒锋柊鏁版嵁';
+        }
+
+        // ==================== 鏁版嵁鑾峰彇鍑芥暟 ====================
+        
+        // 鑾峰彇甯傚満姒傝锛堟寚鏁版暟鎹級
+        async function fetchMarketOverview() {
+            try {
+                // 浣跨敤涓滄柟璐㈠瘜API鑾峰彇鎸囨暟鏁版嵁
+                const indices = [
+                    { code: 'sh000001', name: 'sh-index', change: 'sh-index-change' },
+                    { code: 'sz399001', name: 'sz-index', change: 'sz-index-change' },
+                    { code: 'sz399006', name: 'cy-index', change: 'cy-index-change' }
+                ];
+
+                for (const idx of indices) {
+                    const response = await fetch(
+                        `https://hq.sinajs.cn/list=${idx.code}`,
+                        { headers: { 'Referer': 'https://finance.sina.com.cn' } }
+                    );
+                    const text = await response.text();
+                    const match = text.match(/="([^"]+)"/);
+                    
+                    if (match) {
+                        const data = match[1].split(',');
+                        const value = parseFloat(data[1]).toFixed(2);
+                        const change = parseFloat(data[2]).toFixed(2);
+                        const changePercent = ((change / (value - change)) * 100).toFixed(2);
+                        
+                        document.getElementById(`${idx.name}-value`).textContent = value;
+                        const changeEl = document.getElementById(idx.change);
+                        changeEl.textContent = `${change > 0 ? '+' : ''}${change} (${changePercent}%)`;
+                        changeEl.className = `index-change ${change >= 0 ? 'up' : 'down'}`;
+                    }
+                }
+            } catch (error) {
+                console.error('鑾峰彇甯傚満姒傝澶辫触:', error);
+            }
+        }
+
+        // 鑾峰彇甯傚満缁熻锛堟定璺屽仠鏁伴噺锛?        async function fetchMarketStats() {
+            // 妯℃嫙鏁版嵁 - 瀹為檯搴斾粠涓滄柟璐㈠瘜API鑾峰彇
+            const mockData = {
+                upCount: Math.floor(Math.random() * 1500) + 1500,
+                downCount: Math.floor(Math.random() * 1500) + 1500,
+                limitUpCount: Math.floor(Math.random() * 80) + 50,
+                limitDownCount: Math.floor(Math.random() * 30) + 5
+            };
+
+            document.getElementById('up-count').textContent = mockData.upCount;
+            document.getElementById('down-count').textContent = mockData.downCount;
+            document.getElementById('limit-up-count').textContent = mockData.limitUpCount;
+            document.getElementById('limit-down-count').textContent = mockData.limitDownCount;
+            document.getElementById('zt-count').textContent = mockData.limitUpCount + '鍙?;
+
+            // 淇″彿鎸囨爣
+            const bullSignals = Math.floor(Math.random() * 5) + 3;
+            const bearSignals = Math.floor(Math.random() * 3) + 1;
+            const strength = (bullSignals / (bullSignals + bearSignals) * 100).toFixed(0);
+
+            document.getElementById('bull-signal').textContent = bullSignals;
+            document.getElementById('bear-signal').textContent = bearSignals;
+            document.getElementById('market-strength').textContent = strength + '%';
+        }
+
+        // 鑾峰彇鏉垮潡璧勯噾娴?        async function fetchSectorFlow() {
+            // 妯℃嫙鏁版嵁 - 瀹為檯搴斾粠涓滄柟璐㈠瘜鑾峰彇
+            const sectors = [
+                { name: '鍗婂浣?, flow: 45.8, positive: true },
+                { name: '浜哄伐鏅鸿兘', flow: 38.2, positive: true },
+                { name: '鏂拌兘婧愭苯杞?, flow: 25.6, positive: true },
+                { name: '鍖昏嵂鐢熺墿', flow: -12.3, positive: false },
+                { name: '閾惰', flow: -18.7, positive: false },
+                { name: '鎴垮湴浜?, flow: -25.4, positive: false }
+            ];
+
+            const container = document.getElementById('sector-flow');
+            container.innerHTML = sectors.map(sector => `
+                <div class="sector-item" onclick="selectSector('${sector.name}')">
+                    <div>
+                        <div class="sector-name">${sector.name}</div>
+                        <div class="flow-bar">
+                            <div class="flow-fill ${sector.positive ? 'positive' : 'negative'}" 
+                                 style="width: ${Math.min(Math.abs(sector.flow) / 50 * 100, 100)}%"></div>
+                        </div>
+                    </div>
+                    <div class="sector-flow-amount ${sector.positive ? 'positive' : 'negative'}">
+                        ${sector.positive ? '+' : ''}${sector.flow}浜?                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 鑾峰彇寮哄娍鑲?        async function fetchStrongStocks() {
+            // 妯℃嫙鏁版嵁
+            const stocks = [
+                { name: '鍖楁柟鍗庡垱', code: '002371', price: 468.72, change: 8.56 },
+                { name: '瀹佸痉鏃朵唬', code: '300750', price: 215.30, change: 6.23 },
+                { name: '涓姱鍥介檯', code: '688981', price: 52.18, change: 5.87 },
+                { name: '绉戝ぇ璁', code: '002230', price: 58.42, change: 5.34 },
+                { name: '姣斾簹杩?, code: '002594', price: 268.50, change: 4.92 },
+                { name: '闅嗗熀缁胯兘', code: '601012', price: 28.65, change: 4.56 }
+            ];
+
+            const container = document.getElementById('strong-stocks');
+            container.innerHTML = stocks.map(stock => `
+                <div class="stock-item" onclick="selectStock('${stock.code}')">
+                    <div>
+                        <div class="stock-name">${stock.name}</div>
+                        <div class="stock-code">${stock.code}</div>
+                    </div>
+                    <div class="stock-price">${stock.price.toFixed(2)}</div>
+                    <div class="stock-change up">+${stock.change.toFixed(2)}%</div>
+                </div>
+            `).join('');
+        }
+
+        // 鑾峰彇娑ㄥ仠鏉?        async function fetchLimitUp() {
+            // 妯℃嫙鏁版嵁
+            const limitUps = [
+                { name: '涓姱鍥介檯', code: '688981', time: '09:32', reason: '涓氱哗棰勫' },
+                { name: '鍖楁柟鍗庡垱', code: '002371', time: '09:35', reason: '鍥戒骇鏇夸唬' },
+                { name: '瀹佸痉鏃朵唬', code: '300750', time: '09:38', reason: '鍔ㄥ姏鐢垫睜' },
+                { name: '绉戝ぇ璁', code: '002230', time: '09:42', reason: 'AI姒傚康' },
+                { name: '姣斾簹杩?, code: '002594', time: '09:45', reason: '閿€閲忓闀? }
+            ];
+
+            const container = document.getElementById('limit-up-list');
+            container.innerHTML = limitUps.map(stock => `
+                <div class="limit-up-item" onclick="selectStock('${stock.code}')">
+                    <div>
+                        <div class="limit-up-name">${stock.name}</div>
+                        <div class="limit-up-reason">${stock.reason}</div>
+                    </div>
+                    <div class="limit-up-time">${stock.time}</div>
+                </div>
+            `).join('');
+        }
+
+        // 鑾峰彇寮傚姩鐩戞帶
+        async function fetchAlertStocks() {
+            // 妯℃嫙鏁版嵁
+            const alerts = [
+                { name: '鑽槑搴峰痉', code: '603259', alert: '绐佺幇澶у崟', level: 'high' },
+                { name: '涓浗骞冲畨', code: '601318', alert: '鍒嗘椂鏀鹃噺', level: 'medium' },
+                { name: '璐靛窞鑼呭彴', code: '600519', alert: '璧勯噾娴佸叆', level: 'medium' },
+                { name: '鎷涘晢閾惰', code: '600036', alert: '鐮翠綅', level: 'high' }
+            ];
+
+            const container = document.getElementById('alert-stocks');
+            container.innerHTML = alerts.map(stock => `
+                <div class="stock-item" onclick="selectStock('${stock.code}')">
+                    <div>
+                        <div class="stock-name" style="color: ${stock.level === 'high' ? 'var(--red)' : 'var(--yellow)'}">
+                            鈿?${stock.name}
+                        </div>
+                        <div class="stock-code">${stock.alert}</div>
+                    </div>
+                    <div class="stock-code">${stock.code}</div>
+                </div>
+            `).join('');
+        }
+
+        // 鑾峰彇浠锋牸鏁版嵁
+        async function fetchPriceData() {
+            // 鐢熸垚妯℃嫙鍒嗘椂鏁版嵁
+            const now = new Date();
+            const labels = [];
+            const priceData = [];
+            const avgData = [];
+            const basePrice = 3200;
+            
+            let cumulativePrice = 0;
+            for (let i = 0; i < 240; i++) {
+                const hour = 9 + Math.floor((i + 30) / 60);
+                const min = (i + 30) % 60;
+                
+                if ((hour === 9 && min < 30) || (hour === 11 && min > 30) || (hour === 12 && min < 0) || (hour >= 15)) {
+                    continue;
+                }
+                
+                labels.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
+                const randomChange = (Math.random() - 0.5) * 20;
+                const price = basePrice + cumulativePrice + randomChange;
+                priceData.push(price);
+                cumulativePrice = cumulativePrice * 0.995;
+                
+                const avgPrice = priceData.slice(0, i + 1).reduce((a, b) => a + b, 0) / (i + 1);
+                avgData.push(avgPrice);
+            }
+
+            state.charts.price.data.labels = labels;
+            state.charts.price.data.datasets[0].data = priceData;
+            state.charts.price.data.datasets[1].data = avgData;
+            state.charts.price.update('none');
+
+            // 鏇存柊鎴愪氦閲忔暟鎹?            const volumeData = priceData.map(() => Math.random() * 10000 + 5000);
+            const volumeColors = priceData.map((p, i) => 
+                i > 0 ? (p > priceData[i-1] ? 'rgba(248, 81, 73, 0.6)' : 'rgba(63, 185, 80, 0.6)') : 'rgba(88, 166, 255, 0.6)'
+            );
+
+            state.charts.volume.data.labels = labels;
+            state.charts.volume.data.datasets[0].data = volumeData;
+            state.charts.volume.data.datasets[0].backgroundColor = volumeColors;
+            state.charts.volume.update('none');
+        }
+
+        // 鑾峰彇閲忚兘鍒嗘瀽
+        async function fetchVolumeAnalysis() {
+            const mockData = [
+                { label: '鏃╃洏30鍒?(9:30-10:00)', percent: 38.5, color: 'red', value: '3.85浜? },
+                { label: '涓婂崍涓 (10:00-11:30)', percent: 28.3, color: 'blue', value: '2.83浜? },
+                { label: '涓嬪崍涓 (13:00-14:30)', percent: 18.6, color: 'yellow', value: '1.86浜? },
+                { label: '灏剧洏30鍒?(14:30-15:00)', percent: 14.6, color: 'green', value: '1.46浜? }
+            ];
+
+            const container = document.getElementById('volume-analysis');
+            container.innerHTML = mockData.map(item => `
+                <div class="volume-bar">
+                    <div class="volume-label">${item.label}</div>
+                    <div class="volume-track">
+                        <div class="volume-fill ${item.color}" style="width: ${item.percent}%"></div>
+                    </div>
+                    <div class="volume-percent">${item.percent}%</div>
+                </div>
+            `).join('');
+
+            document.getElementById('volume-total').textContent = 
+                `鎬绘垚浜? ${(3.85 + 2.83 + 1.86 + 1.46).toFixed(2)}浜縛;
+        }
+
+        // 鑾峰彇璧勯噾娴佸悜
+        async function fetchFundFlow() {
+            const labels = ['9:30', '10:00', '10:30', '11:00', '11:30', '13:00', '13:30', '14:00', '14:30', '15:00'];
+            const data = [
+                25.6, 15.3, -8.2, 12.5, -5.3,
+                8.6, -12.4, 18.9, -3.2, 5.8
+            ];
+
+            const colors = data.map(d => d >= 0 ? 'rgba(248, 81, 73, 0.7)' : 'rgba(63, 185, 80, 0.7)');
+
+            state.charts.fundFlow.data.labels = labels;
+            state.charts.fundFlow.data.datasets[0].data = data;
+            state.charts.fundFlow.data.datasets[0].backgroundColor = colors;
+            state.charts.fundFlow.update('none');
+        }
+
+        // ==================== 澶嶇洏鍔熻兘 ====================
+        
+        function switchMode(mode) {
+            state.mode = mode;
+            
+            document.getElementById('realtime-mode').classList.toggle('active', mode === 'realtime');
+            document.getElementById('replay-mode').classList.toggle('active', mode === 'replay');
+            document.getElementById('replay-nav').style.display = mode === 'replay' ? 'flex' : 'none';
+            
+            const statusBadge = document.getElementById('status-badge');
+            const statusText = document.getElementById('status-text');
+            
+            if (mode === 'realtime') {
+                statusBadge.className = 'status-badge realtime';
+                statusText.textContent = '瀹炴椂琛屾儏';
+                state.autoRefresh = true;
+                refreshData();
+            } else {
+                statusBadge.className = 'status-badge replay';
+                statusText.textContent = '澶嶇洏妯″紡';
+                state.autoRefresh = false;
+                
+                // 璁剧疆鏃ユ湡閫夋嫨鍣ㄤ负浠婂ぉ
+                const dateInput = document.getElementById('replay-date');
+                dateInput.value = state.currentDate;
+                dateInput.max = state.currentDate;
+                loadReplayData();
+            }
+        }
+
+        async function loadReplayData() {
+            const date = document.getElementById('replay-date').value;
+            if (!date) return;
+
+            state.replayDate = date;
+            
+            // 鏄剧ず鍔犺浇鐘舵€?            showLoadingState();
+
+            // 妯℃嫙鍔犺浇鍘嗗彶鏁版嵁
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // 鏇存柊鍥捐〃鏍囬
+            document.getElementById('chart-title').textContent = 
+                `馃搳 涓婅瘉鎸囨暟璧板娍 (${date})`;
+        }
+
+        function prevPeriod() {
+            if (!state.replayDate) return;
+            const date = new Date(state.replayDate);
+            date.setDate(date.getDate() - 1);
+            state.replayDate = date.toISOString().split('T')[0];
+            document.getElementById('replay-date').value = state.replayDate;
+            loadReplayData();
+        }
+
+        function nextPeriod() {
+            if (!state.replayDate) return;
+            const date = new Date(state.replayDate);
+            const today = new Date();
+            
+            if (date < today) {
+                date.setDate(date.getDate() + 1);
+                state.replayDate = date.toISOString().split('T')[0];
+                document.getElementById('replay-date').value = state.replayDate;
+                loadReplayData();
+            }
+        }
+
+        function exitReplay() {
+            switchMode('realtime');
+        }
+
+        // ==================== 鍥捐〃妯″紡鍒囨崲 ====================
+        function switchChartMode(mode) {
+            state.chartMode = mode;
+            
+            document.getElementById('minute-mode').classList.toggle('active', mode === 'minute');
+            document.getElementById('daily-mode').classList.toggle('active', mode === 'daily');
+            
+            // 閲嶆柊鍔犺浇鏁版嵁
+            fetchPriceData();
+        }
+
+        // ==================== 杈呭姪鍑芥暟 ====================
+        
+        function selectStock(code) {
+            state.selectedStock = code;
+            console.log('閫変腑鑲＄エ:', code);
+            // 杩欓噷鍙互鎵╁睍涓烘樉绀洪€変腑鑲＄エ鐨勮缁嗘暟鎹?        }
+
+        function selectSector(name) {
+            console.log('閫変腑鏉垮潡:', name);
+        }
+
+        function switchStockTab(tab) {
+            const tabs = document.querySelectorAll('#strong-stocks').parent().querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 鍒囨崲鏁版嵁
+            if (tab === 'fund') {
+                fetchStrongStocks('fund');
+            } else {
+                fetchStrongStocks('volume');
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-CN');
+            document.getElementById('current-time').textContent = timeStr;
+        }
+
+        function startAutoRefresh() {
+            if (state.refreshInterval) {
+                clearInterval(state.refreshInterval);
+            }
+            
+            state.refreshInterval = setInterval(() => {
+                if (state.autoRefresh && state.mode === 'realtime') {
+                    const now = new Date();
+                    const hour = now.getHours();
+                    const minute = now.getMinutes();
+                    
+                    // 浜ゆ槗鏃舵鑷姩鍒锋柊
+                    if ((hour >= 9 && hour < 15) || (hour >= 10 && minute >= 30) || (hour >= 13 && hour < 15)) {
+                        // 浜ゆ槗鏃舵锛屾瘡30绉掑埛鏂颁竴娆?                    }
+                }
+            }, 30000);
+        }
+
+        function showLoadingState() {
+            const elements = ['sector-flow', 'strong-stocks', 'limit-up-list', 'alert-stocks', 'volume-analysis'];
+            elements.forEach(id => {
+                document.getElementById(id).innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        鍔犺浇涓?..
+                    </div>
+                `;
+            });
+        }
+
+        function handleKeyboard(e) {
+            switch(e.key.toLowerCase()) {
+                case 'r':
+                    refreshData();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    state.autoRefresh = !state.autoRefresh;
+                    break;
+                case 'arrowleft':
+                    if (state.mode === 'replay') prevPeriod();
+                    break;
+                case 'arrowright':
+                    if (state.mode === 'replay') nextPeriod();
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
