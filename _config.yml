@@ -1,0 +1,6 @@
+# Force UTF-8 encoding for all pages
+encoding: utf-8
+
+# Disable Jekyll processing (serve HTML as-is)
+exclude:
+  - README.md
