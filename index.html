@@ -769,13 +769,132 @@
     </style>
 
     <script>
-        // 检测是否在GitHub Pages上运行
+        // ========== Demo模式配置 ==========
         const IS_GITHUB_PAGES = window.location.hostname.includes('github.io');
-        const DEMO_MODE = IS_GITHUB_PAGES;  // GitHub Pages上强制使用Demo模式
+        const DEMO_MODE = IS_GITHUB_PAGES;
         
         if (DEMO_MODE) {
-            console.log('📊 Demo模式已启用（GitHub Pages）');
+            console.log('%c📊 Demo模式已启用', 'color: #58a6ff; font-weight: bold;');
+            console.log('   GitHub Pages不支持CORS，使用模拟数据展示功能');
         }
+
+        // ========== Mock数据生成器 ==========
+        const MockData = {
+            // 市场概览
+            marketOverview: function() {
+                return [
+                    { name: 'sh-index', value: '3,245.67', change: '+12.34 (+0.38%)', cls: 'up' },
+                    { name: 'sz-index', value: '10,876.23', change: '-45.67 (-0.42%)', cls: 'down' },
+                    { name: 'cy-index', value: '2,123.45', change: '+8.90 (+0.42%)', cls: 'up' }
+                ];
+            },
+
+            // 市场统计
+            marketStats: function() {
+                return {
+                    upCount: 2847,
+                    downCount: 2156,
+                    limitUpCount: 87,
+                    limitDownCount: 12,
+                    bullSignals: 6,
+                    bearSignals: 2,
+                    strength: 75
+                };
+            },
+
+            // 板块资金流
+            sectorFlow: function() {
+                return [
+                    { name: '半导体', flow: 45.8, positive: true },
+                    { name: '人工智能', flow: 38.2, positive: true },
+                    { name: '新能源汽车', flow: 25.6, positive: true },
+                    { name: '军工', flow: 18.3, positive: true },
+                    { name: '光伏', flow: 12.7, positive: true },
+                    { name: '医药生物', flow: -12.3, positive: false },
+                    { name: '银行', flow: -18.7, positive: false },
+                    { name: '房地产', flow: -25.4, positive: false }
+                ];
+            },
+
+            // 强势股
+            strongStocks: function(type) {
+                const fundStocks = [
+                    { name: '宁德时代', code: '300750', price: '245.60', change: '+5.67%', amount: '89.2亿', reason: '北向资金大幅流入' },
+                    { name: '比亚迪', code: '002594', price: '312.40', change: '+4.23%', amount: '67.5亿', reason: '新能源汽车销量超预期' },
+                    { name: '中芯国际', code: '688981', price: '78.90', change: '+8.12%', amount: '54.3亿', reason: '半导体国产化加速' }
+                ];
+                const volumeStocks = [
+                    { name: '东方财富', code: '300059', price: '23.45', change: '+3.21%', volume: '3.2亿股', reason: '券商板块集体异动' },
+                    { name: '贵州茅台', code: '600519', price: '1,678.90', change: '+1.45%', volume: '289万股', reason: '白酒板块企稳' },
+                    { name: '隆基绿能', code: '601012', price: '45.67', change: '+6.78%', volume: '1.8亿股', reason: '光伏政策利好' }
+                ];
+                return type === 'fund' ? fundStocks : volumeStocks;
+            },
+
+            // 涨停板
+            limitUp: function() {
+                return [
+                    { name: '中马传动', code: '603767', price: '28.45', change: '+10.02%', reason: '机器人概念', time: '09:31:02', strong: true },
+                    { name: '南方精工', code: '002553', price: '34.56', change: '+10.01%', reason: '汽车零部件', time: '09:32:15', strong: true },
+                    { name: '三花智控', code: '002050', price: '56.78', change: '+10.00%', reason: '热管理龙头', time: '09:35:42', strong: false },
+                    { name: '鸣志电器', code: '603728', price: '41.23', change: '+9.99%', reason: '步进电机', time: '09:38:10', strong: false },
+                    { name: '绿的谐波', code: '688017', price: '189.50', change: '+20.00%', reason: '谐波减速器', time: '09:41:33', strong: true }
+                ];
+            },
+
+            // 预警股票
+            alertStocks: function() {
+                return [
+                    { name: '北方华创', code: '002371', alert: '🔥 突破前高', price: '456.78', change: '+7.89%', reason: '半导体设备订单超预期' },
+                    { name: '阳光电源', code: '300274', alert: '📈 量价齐升', price: '123.45', change: '+5.43%', reason: '储能出口订单大增' },
+                    { name: '科大讯飞', code: '002230', alert: '⚡ 资金异动', price: '67.89', change: '+4.56%', reason: 'AI大模型商业化落地' }
+                ];
+            },
+
+            // 分时数据
+            priceData: function() {
+                const data = [];
+                const base = 245.60;
+                for (let i = 0; i < 240; i++) {
+                    const time = i < 120 ? 
+                        `09:${String(30 + Math.floor(i/2)).padStart(2, '0')}` :
+                        `10:${String(Math.floor((i-120)/6)).padStart(2, '0')}`;
+                    const price = base + Math.sin(i/20) * 5 + (Math.random() - 0.5) * 2;
+                    data.push({
+                        time: time,
+                        price: price.toFixed(2),
+                        volume: Math.floor(Math.random() * 10000 + 5000)
+                    });
+                }
+                return data;
+            },
+
+            // 成交量分析
+            volumeAnalysis: function() {
+                return {
+                    total: '3,456.78亿',
+                    avg: '1,234.56亿',
+                    change: '+28.5%',
+                    distribution: [
+                        { range: '100亿+', count: 5, color: '#f85149' },
+                        { range: '50-100亿', count: 12, color: '#d29922' },
+                        { range: '20-50亿', count: 28, color: '#58a6ff' },
+                        { range: '10-20亿', count: 45, color: '#3fb950' },
+                        { range: '10亿以下', count: 120, color: '#8b949e' }
+                    ]
+                };
+            },
+
+            // 资金流向
+            fundFlow: function() {
+                return {
+                    main: '+128.5亿',
+                    retail: '-89.3亿',
+                    north: '+25.6亿',
+                    margin: '+18.7亿'
+                };
+            }
+        };
     </script>
     </head>
 <body>
@@ -1189,13 +1308,8 @@
         async function fetchMarketOverview() {
             try {
                 if (DEMO_MODE) {
-                    // Demo模式：使用模拟数据
-                    const demoData = [
-                        { name: 'sh-index', value: '3,245.67', change: '+12.34 (+0.38%)', cls: 'up' },
-                        { name: 'sz-index', value: '10,876.23', change: '-45.67 (-0.42%)', cls: 'down' },
-                        { name: 'cy-index', value: '2,123.45', change: '+8.90 (+0.42%)', cls: 'up' }
-                    ];
-                    demoData.forEach(d => {
+                    const data = MockData.marketOverview();
+                    data.forEach(d => {
                         document.getElementById(`${d.name}-value`).textContent = d.value;
                         const el = document.getElementById(`${d.name}-change`);
                         el.textContent = d.change;
@@ -1233,50 +1347,34 @@
                 }
             } catch (error) {
                 console.error('获取市场概览失败:', error);
-                // 错误时使用模拟数据
-                fetchMarketOverviewDemo();
+                // Demo模式备用
+                const data = MockData.marketOverview();
+                data.forEach(d => {
+                    document.getElementById(`${d.name}-value`).textContent = d.value;
+                    const el = document.getElementById(`${d.name}-change`);
+                    el.textContent = d.change;
+                    el.className = `index-change ${d.cls}`;
+                });
             }
-        }
-
-        // Demo数据备用函数
-        function fetchMarketOverviewDemo() {
-            const demoData = [
-                { name: 'sh-index', value: '3,245.67', change: '+12.34 (+0.38%)', cls: 'up' },
-                { name: 'sz-index', value: '10,876.23', change: '-45.67 (-0.42%)', cls: 'down' },
-                { name: 'cy-index', value: '2,123.45', change: '+8.90 (+0.42%)', cls: 'up' }
-            ];
-            demoData.forEach(d => {
-                document.getElementById(`${d.name}-value`).textContent = d.value;
-                const el = document.getElementById(`${d.name}-change`);
-                el.textContent = d.change;
-                el.className = `index-change ${d.cls}`;
-            });
         }
 
         // 获取市场统计（涨跌停数量）
         async function fetchMarketStats() {
-            // 模拟数据 - 实际应从东方财富API获取
-            const mockData = {
-                upCount: Math.floor(Math.random() * 1500) + 1500,
-                downCount: Math.floor(Math.random() * 1500) + 1500,
-                limitUpCount: Math.floor(Math.random() * 80) + 50,
-                limitDownCount: Math.floor(Math.random() * 30) + 5
-            };
+            try {
+                const data = MockData.marketStats();
+                
+                document.getElementById('up-count').textContent = data.upCount;
+                document.getElementById('down-count').textContent = data.downCount;
+                document.getElementById('limit-up-count').textContent = data.limitUpCount;
+                document.getElementById('limit-down-count').textContent = data.limitDownCount;
+                document.getElementById('zt-count').textContent = data.limitUpCount + '只';
 
-            document.getElementById('up-count').textContent = mockData.upCount;
-            document.getElementById('down-count').textContent = mockData.downCount;
-            document.getElementById('limit-up-count').textContent = mockData.limitUpCount;
-            document.getElementById('limit-down-count').textContent = mockData.limitDownCount;
-            document.getElementById('zt-count').textContent = mockData.limitUpCount + '只';
-
-            // 信号指标
-            const bullSignals = Math.floor(Math.random() * 5) + 3;
-            const bearSignals = Math.floor(Math.random() * 3) + 1;
-            const strength = (bullSignals / (bullSignals + bearSignals) * 100).toFixed(0);
-
-            document.getElementById('bull-signal').textContent = bullSignals;
-            document.getElementById('bear-signal').textContent = bearSignals;
-            document.getElementById('market-strength').textContent = strength + '%';
+                document.getElementById('bull-signal').textContent = data.bullSignals;
+                document.getElementById('bear-signal').textContent = data.bearSignals;
+                document.getElementById('market-strength').textContent = data.strength + '%';
+            } catch (error) {
+                console.error('获取市场统计失败:', error);
+            }
         }
 
         // 获取板块资金流
@@ -1382,47 +1480,76 @@
 
         // 获取价格数据
         async function fetchPriceData() {
-            // 生成模拟分时数据
-            const now = new Date();
-            const labels = [];
-            const priceData = [];
-            const avgData = [];
-            const basePrice = 3200;
-            
-            let cumulativePrice = 0;
-            for (let i = 0; i < 240; i++) {
-                const hour = 9 + Math.floor((i + 30) / 60);
-                const min = (i + 30) % 60;
-                
-                if ((hour === 9 && min < 30) || (hour === 11 && min > 30) || (hour === 12 && min < 0) || (hour >= 15)) {
-                    continue;
+            try {
+                if (DEMO_MODE) {
+                    const data = MockData.priceData();
+                    renderPriceChart(data);
+                    return;
                 }
+
+                // 实际API调用（非Demo模式）
+                const code = document.getElementById('stock-code').value || '300750';
+                const response = await fetch(`https://push2his.eastmoney.com/api/qt/stock/trends2/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&secid=0.${code}`);
+                const result = await response.json();
                 
-                labels.push(`${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`);
-                const randomChange = (Math.random() - 0.5) * 20;
-                const price = basePrice + cumulativePrice + randomChange;
-                priceData.push(price);
-                cumulativePrice = cumulativePrice * 0.995;
-                
-                const avgPrice = priceData.slice(0, i + 1).reduce((a, b) => a + b, 0) / (i + 1);
-                avgData.push(avgPrice);
+                if (result.data && result.data.trends) {
+                    const trends = result.data.trends.map(t => {
+                        const [time, price, volume] = t.split(',');
+                        return { time, price, volume };
+                    });
+                    renderPriceChart(trends);
+                }
+            } catch (error) {
+                console.error('获取分时数据失败:', error);
+                // 使用模拟数据
+                const data = MockData.priceData();
+                renderPriceChart(data);
+            }
+        }
+
+        function renderPriceChart(data) {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            if (window.priceChart) {
+                window.priceChart.destroy();
             }
 
-            state.charts.price.data.labels = labels;
-            state.charts.price.data.datasets[0].data = priceData;
-            state.charts.price.data.datasets[1].data = avgData;
-            state.charts.price.update('none');
-
-            // 更新成交量数据
-            const volumeData = priceData.map(() => Math.random() * 10000 + 5000);
-            const volumeColors = priceData.map((p, i) => 
-                i > 0 ? (p > priceData[i-1] ? 'rgba(248, 81, 73, 0.6)' : 'rgba(63, 185, 80, 0.6)') : 'rgba(88, 166, 255, 0.6)'
-            );
-
-            state.charts.volume.data.labels = labels;
-            state.charts.volume.data.datasets[0].data = volumeData;
-            state.charts.volume.data.datasets[0].backgroundColor = volumeColors;
-            state.charts.volume.update('none');
+            window.priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.time),
+                    datasets: [{
+                        label: '价格',
+                        data: data.map(d => d.price),
+                        borderColor: '#58a6ff',
+                        backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            ticks: { maxTicksLimit: 8, color: '#8b949e' },
+                            grid: { color: 'rgba(48, 54, 61, 0.3)' }
+                        },
+                        y: {
+                            display: true,
+                            position: 'right',
+                            ticks: { color: '#8b949e' },
+                            grid: { color: 'rgba(48, 54, 61, 0.3)' }
+                        }
+                    }
+                }
+            });
         }
 
         // 获取量能分析
