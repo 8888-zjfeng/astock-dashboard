@@ -1305,53 +1305,39 @@
         // 获取市场概览（指数数据）
         async function fetchMarketOverview() {
             try {
-                if (DEMO_MODE) {
-                    const data = MockData.marketOverview();
-                    data.forEach(d => {
-                        document.getElementById(`${d.name}-value`).textContent = d.value;
-                        const el = document.getElementById(`${d.name}-change`);
-                        el.textContent = d.change;
-                        el.className = `index-change ${d.cls}`;
+                // 东方财富 ulist.np 接口获取三大指数（支持CORS）
+                // f2=现价, f3=涨跌幅%, f4=涨跌额, f12=代码, f14=名称
+                const ts = Date.now();
+                const res = await fetch(
+                    `${EMC_HOST}/api/qt/ulist.np/get?fltt=2&invt=2&fields=f2,f3,f4,f12,f14&secids=1.000001,0.399001,0.399006&cb=&_=${ts}`
+                );
+                const json = await res.json();
+
+                if (json.rc === 0 && json.data && json.data.diff) {
+                    const idMap = { '000001': 'sh-index', '399001': 'sz-index', '399006': 'cy-index' };
+                    const chgMap = { '000001': 'sh-index-change', '399001': 'sz-index-change', '399006': 'cy-index-change' };
+
+                    json.data.diff.forEach(d => {
+                        const id = idMap[d.f12];
+                        const cid = chgMap[d.f12];
+                        if (!id) return;
+
+                        const valueEl = document.getElementById(`${id}-value`);
+                        const changeEl = document.getElementById(cid);
+                        if (valueEl) valueEl.textContent = d.f2.toFixed(2);
+                        if (changeEl) {
+                            const sign = d.f4 >= 0 ? '+' : '';
+                            changeEl.textContent = `${sign}${d.f4.toFixed(2)} (${sign}${d.f3.toFixed(2)}%)`;
+                            changeEl.className = `index-change ${d.f3 >= 0 ? 'up' : 'down'}`;
+                        }
                     });
-                    return;
-                }
-
-                // 使用东方财富API获取指数数据
-                const indices = [
-                    { code: 'sh000001', name: 'sh-index', change: 'sh-index-change' },
-                    { code: 'sz399001', name: 'sz-index', change: 'sz-index-change' },
-                    { code: 'sz399006', name: 'cy-index', change: 'cy-index-change' }
-                ];
-
-                for (const idx of indices) {
-                    const response = await fetch(
-                        `https://hq.sinajs.cn/list=${idx.code}`,
-                        { headers: { 'Referer': 'https://finance.sina.com.cn' } }
-                    );
-                    const text = await response.text();
-                    const match = text.match(/="([^"]+)"/);
-                    
-                    if (match) {
-                        const data = match[1].split(',');
-                        const value = parseFloat(data[1]).toFixed(2);
-                        const change = parseFloat(data[2]).toFixed(2);
-                        const changePercent = ((change / (value - change)) * 100).toFixed(2);
-                        
-                        document.getElementById(`${idx.name}-value`).textContent = value;
-                        const changeEl = document.getElementById(idx.change);
-                        changeEl.textContent = `${change > 0 ? '+' : ''}${change} (${changePercent}%)`;
-                        changeEl.className = `index-change ${change >= 0 ? 'up' : 'down'}`;
-                    }
                 }
             } catch (error) {
                 console.error('获取市场概览失败:', error);
-                // Demo模式备用
-                const data = MockData.marketOverview();
-                data.forEach(d => {
-                    document.getElementById(`${d.name}-value`).textContent = d.value;
-                    const el = document.getElementById(`${d.name}-change`);
-                    el.textContent = d.change;
-                    el.className = `index-change ${d.cls}`;
+                // 备用：显示占位符
+                ['sh-index-value','sz-index-value','cy-index-value'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = '--';
                 });
             }
         }
@@ -1562,14 +1548,15 @@
         async function fetchPriceData() {
             try {
                 // 东方财富 - 个股分时数据（默认上证指数）
+                // 注意：用 push2.eastmoney.com（实时），不用 push2his（历史）
                 const codeEl = document.getElementById('stock-code');
                 const rawCode = codeEl ? codeEl.value.trim() : '';
                 const code = rawCode || '000001';
-                // 判断市场：60开头=沪, 00/30开头=深, 68开头=科创
-                const market = code.startsWith('6') ? '1' : '0';
+                // 判断市场：60/68开头=沪市, 00/30开头=深市
+                const market = (code.startsWith('6') || code.startsWith('5')) ? '1' : '0';
                 const ts = Date.now();
                 
-                const res = await fetch(`${EMH_HOST}/api/qt/stock/trends2/get?secid=${market}.${code}&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&cb=&_=${ts}`);
+                const res = await fetch(`${EMC_HOST}/api/qt/stock/trends2/get?secid=${market}.${code}&ndays=1&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&cb=&_=${ts}`);
                 const json = await res.json();
                 
                 if (json.rc === 0 && json.data && json.data.trends) {
